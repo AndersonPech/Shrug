@@ -1,0 +1,258 @@
+#!/bin/dash
+
+#To get number of commits
+x=`wc -l <.shrug/log`
+
+
+#If no commits
+if [ $x -eq 0 ] 
+then
+    echo shrug-rm: error: your repository does not have any commits yet
+    exit
+fi
+
+#Delete file from index
+ if [ "$1" = "--cached" ]
+ then
+    #If no file present or incorrect argument
+    if [ -z "$2" ] || [ "$2" = "--forced" ]
+    then
+        echo "usage: shrug-rm [--force] [--cached] <filenames>"
+        exit 1
+    fi
+    
+    shift 
+    for input in $@
+    do
+        #if file no in the index
+        if [ ! -e .shrug/index/$input ] 
+        then
+            echo shrug-rm: error: \'$input\' is not in the shrug repository
+            exit 1
+        fi
+
+
+        #If index is different from current directory and repository
+        if [ -e .shrug/repository/$input ] && [ -e $input ] 
+        then
+            if ! diff .shrug/repository/$input .shrug/index/$input >/dev/null && ! diff .shrug/repository/$input $input >/dev/null 
+            then
+                if ! diff .shrug/index/$input $input >/dev/null
+                then
+                echo shrug-rm: error: \'$input\' in index is different to both working file and repository
+                exit 1
+                fi
+            fi
+        fi
+
+        #If file does not exist in repository but exists in index
+        if [ ! -e .shrug/repository/$input ]
+        then
+            rm .shrug/index/$input
+            continue
+        fi
+
+        #If file exists in repository but different from index and current directory
+        if  ! diff .shrug/index/$input .shrug/repository/$input >/dev/null && ! diff .shrug/index/$input $input >/dev/null
+        then
+            echo shrug-rm: error: \'$input\' has changes staged in the index
+            exit 1
+        fi
+
+        rm .shrug/index/$input
+
+    done
+
+    exit 0
+ fi
+
+#Delete file from index, despite changes
+ if [ "$1" = "--force" ]
+ then
+    if [ -z "$2" ] 
+    then
+        echo "usage: shrug-rm [--force] [--cached] <filenames>"
+        exit 1
+    fi
+
+    
+    shift
+
+
+    for input in $@ 
+    do
+        if [ $input = "--cached" ]
+        then
+            continue
+        fi 
+
+        #if in repository but not in index. Staged for deletion.
+        if [ -e .shrug/repository/$input ] 
+        then
+            if [ ! -e .shrug/index/$input ]
+            then
+                echo shrug-rm: error: \'$input\' is not in the shrug repository
+                exit 1
+            fi
+        fi
+        
+        #if not in index
+        if [ ! -e .shrug/index/$input ] && [ ! -e .shrug/repository/$input ]
+        then
+            echo shrug-rm: error: \'$input\' is not in the shrug repository
+            exit 1
+        fi
+
+
+        #If file is in repository, index and current directory
+        if [ -e .shrug/repository/$input ] && [ -e $input ] && [ -e .shrug/index/$input ]
+        then
+            #If file is different in index and repo
+            if ! diff .shrug/repository/$input .shrug/index/$input >/dev/null
+            then
+                #If file is different in repo and current directory but same in index and current directory
+                if ! diff .shrug/repository/$input $input >/dev/null &&  diff .shrug/index/$input $input >/dev/null
+                then
+                    echo shrug-rm: error: \'$input\' in index is different to both working file and repository
+                fi
+            fi
+            #If file is different in repo and current directory and different in repo and index
+            if ! diff .shrug/repository/$input $input >/dev/null &&  diff .shrug/repository/$input .shrug/index/$input >/dev/null
+            then
+                echo shrug-rm: error: \'$input\' in repository is different to working file
+            fi
+        fi
+
+        #if does not exist in repo but exist in index and current directory
+        if [ ! -e .shrug/repository/$input ] && [ -e .shrug/index/$input ] && [ "$1" != "--cached" ]
+        then
+            if diff .shrug/index/$input $input >/dev/null
+            then
+                echo shrug-rm: error: \'$input\' has changes staged in the index
+            fi
+        fi
+
+        #If file is different in repo and index. If current directory and index file same then print error
+
+        if [ -e .shrug/repository/$input ] && [ -e .shrug/index/$input ] && [ "$1" != "--cached" ]
+        then
+            if  ! diff  .shrug/index/$input .shrug/repository/$input >/dev/null && diff .shrug/index/$input $input >/dev/null
+            then
+                echo shrug-rm: error: \'$input\' has changes staged in the index
+            fi
+        fi
+    
+        #Delete from index if file exists
+        if [ -e .shrug/index/$input ]
+        then
+            rm .shrug/index/$input
+        fi
+
+        #Delete from current directory if file exists and if cached is specified
+        if [ -e $input ] && [ "$1" != "--cached" ]
+        then
+            rm $input
+        fi
+
+    done
+    exit 0
+fi
+
+#If no files given
+if [ -z "$1" ]
+then
+    echo "usage: shrug-rm [--force] [--cached] <filenames>"
+fi
+
+
+#Delete file from index and current directory or just from index
+for input in $@
+do
+    #if in repository but not in index. Staged for deletion.
+    if [ -e .shrug/repository/$input ] 
+    then
+        if [ ! -e .shrug/index/$input ]
+        then
+            echo shrug-rm: error: \'$input\' is not in the shrug repository
+            exit 1
+        fi
+    fi
+
+
+    #if not in index
+    if [ ! -e .shrug/index/$input ] 
+    then
+        echo shrug-rm: error: \'$input\' is not in the shrug repository
+        exit 1
+        
+    fi
+
+    #If file is in repository, index and current directory
+    if [ -e .shrug/repository/$input ] && [ -e $input ] && [ -e .shrug/index/$input ]
+    then
+        #If file is different from index, repository and current directory
+        if ! diff .shrug/repository/$input $input >/dev/null
+        then
+            if ! diff .shrug/repository/$input .shrug/index/$input >/dev/null && ! diff .shrug/index/$input $input >/dev/null
+            then
+                echo shrug-rm: error: \'$input\' in index is different to both working file and repository
+                exit 1
+            fi
+        fi
+
+        #If file is different from current directory and repository but same in repository and index
+        if ! diff .shrug/repository/$input $input >/dev/null &&  diff .shrug/repository/$input .shrug/index/$input >/dev/null
+        then
+            echo shrug-rm: error: \'$input\' in repository is different to working file
+            exit 1
+        fi
+    fi
+
+    #if does not exist in repo but exist in index
+
+    if [ ! -e .shrug/repository/$input ] && [ -e .shrug/index/$input ]
+    then
+        echo shrug-rm: error: \'$input\' has changes staged in the index
+        exit 1
+    fi
+
+    #If file is different in repo and index
+
+    if [ -e .shrug/repository/$input ] && [ -e .shrug/index/$input ]
+    then
+        if  ! diff  .shrug/index/$input .shrug/repository/$input >/dev/null
+        then
+            echo shrug-rm: error: \'$input\' has changes staged in the index
+            exit 1
+        fi
+    fi
+
+    #If file is different in index and current directory
+
+    if [ -e .shrug/index/$input ] && [ -e $input ]
+    then
+        if  ! diff  $input .shrug/index/$input >/dev/null
+        then
+            echo shrug-rm: error: \'$input\' has changes staged in the index
+            exit 1
+        fi
+    fi
+
+    #Since file does exist in index, no checking is required if file exists
+    rm .shrug/index/$input
+
+    if [ -e $input ]
+    then
+        rm $input
+    fi
+
+done
+
+
+
+
+
+
+ 
+
+

@@ -1,0 +1,109 @@
+#!/bin/dash
+
+#If .shrug doesn't exist
+if [ ! -e .shrug ]
+then
+    echo "shrug-commit: error: no .shrug directory containing shrug repository exists" 1>&2
+    exit 1
+fi
+
+#If no -m or -a
+if [ "$1" != "-m" ]     
+then
+    if [ "$1" != "-a" ] 
+    then
+        echo "usage: shrug-commit [-a] -m commit-message" 1>&2
+        exit 1
+    fi
+fi
+
+#For -a option
+if [ "$1" = "-a" ]
+then
+    #If no files given
+    if [ "$2" != "-m" ]
+    then
+        echo "usage: shrug-commit [-a] -m commit-message" 1>&2
+        exit 1
+    fi
+
+    #Copy the files in current directory to index
+    for input in *
+    do 
+        if [ -d $input ] >/dev/null
+        then
+            continue
+        fi
+        x=`cat $input | head -1` 
+        if [ "$x" = "#!/bin/dash" ] 
+        then
+            continue
+        fi
+        cp $input .shrug/index
+    done
+
+fi
+
+#if there is nothing in index
+if [ ! "$(ls -A .shrug/index)" ] && [ ! "$(ls -A .shrug/repository)" ]
+then
+    echo nothing to commit 1>&2
+    exit 1
+fi
+
+#if index and repository the same
+if  diff  -r .shrug/index .shrug/repository >/dev/null
+then
+    echo nothing to commit 1>&2
+    exit 1
+fi
+
+#if there is content in repository. Copy to another directory
+if [ "$(ls -A .shrug/repository)" ] 
+then
+    for input in .shrug/repository/*
+    do
+        rm $input
+    done
+fi
+
+#Copy the index to the repository
+if [ "$(ls -A .shrug/index)" ]
+then
+    for input in .shrug/index/*
+    do
+        cp $input .shrug/repository 
+    done
+fi
+
+#Copy contents in repository to another directory named the number of the commit
+x=`wc -l <.shrug/log`
+mkdir ".shrug/$x"
+if [ "$(ls -A .shrug/repository)" ]
+then
+    for input in .shrug/repository/*
+    do 
+        cp $input .shrug/$x
+    done
+fi
+
+
+#Prints the number of the commit to a file log
+if [ ! -e ".shrug/log" ]
+then
+    cat>.shrug/log<<eof
+    $2
+eof
+    echo "Committed as commit 0"
+    exit 
+fi
+
+x=`wc -l <.shrug/log`   #Gets number of commits
+
+echo -n "$x " >> .shrug/log
+echo -n $2 >> .shrug/log 
+printf '\n' >> .shrug/log
+echo Committed as commit $x
+
+#Bash shell completed with no errors
+exit 0

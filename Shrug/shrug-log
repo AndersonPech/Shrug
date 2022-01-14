@@ -1,0 +1,5 @@
+#!/bin/dash
+  
+
+#Prints contents of log in numerical order
+cat .shrug/log | sort -nr

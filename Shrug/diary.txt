@@ -1,0 +1,17 @@
+Date        Start       Stop            Comments
+
+22/6/2020   2:20pm      3:30pm          Coding subset0. Shrug-init and shrug-add were simple to code. Shrug-commit looks to be the
+                                        main component of subset0.
+24/6/2020   6:00pm      7:00pm          Finished shrug-init and shrug-add. Finished shrug-log. A bug in shrug-show in relation to 
+                                        finding the difference in content of index and repository.
+4/7/2020    3:00pm      7:00pm          Began code for shrug-show. Shrug-commit needed to be revise due to the nature of shrug-show.
+                                        Shrug-commit looks to be the largest code in subset0.
+5/7/2020    3:00pm      10:30pm         Finished subset0. Autotest 6 took a while to resolve due to a bug in shrug-show.
+                                        Method used for subset0 was not the most efficient. Will revise subset0 if there is time.
+7/7/2020    4:00pm      7:00pm          Began subset1. Completed shrug-commit -a. Resolved a potential bug with shrug-add in which filenames
+                                        beginning with -a is allowed. 
+9/7/2020    4:00pm      8:00pm          Coded shrug-rm. Difficulty finding all the different cases for rm. Found the bug for autotest 14. 
+10/7/2020   3:00pm      9:00pm          Completed shrug-rm passing all autotests. Need to put shrug-rm through further autotests as the ones given
+                                        were not extensive enough. 
+12/7/2020   3:00pm      10:00pm         Finished shrug-rm. Bug in shrug-status. If not found will submit as it is.
+13/7/2020   12:00pm     9:00pm          Finished shrug-rm and debugged shrug-status. Coded test files. 

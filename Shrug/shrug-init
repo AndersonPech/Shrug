@@ -1,0 +1,21 @@
+#!/bin/dash
+if [ -e .shrug ] 
+then
+    echo shrug-init: error: .shrug already exists 1>&2
+    exit 
+fi 
+
+#Create shrug
+mkdir .shrug
+
+#Create repository
+mkdir .shrug/repository
+
+#Create log
+touch .shrug/log
+
+#Create index
+mkdir .shrug/index
+
+echo Initialized empty shrug repository in .shrug 
+

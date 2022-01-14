@@ -1,0 +1,42 @@
+#!/bin/dash 
+
+#If .shrug does not exist
+if [ ! -e .shrug ]
+then
+    echo shrug-add: error: no .shrug directory containing shrug repository exists 1>&2
+    exit 1
+fi
+
+#If no file given
+
+if [ -z $1 ]
+then
+    echo "usage: shrug-add <filenames>" 1>&2
+    exit 1
+fi
+
+
+#If file begins with - 
+result=`echo $1 | cut -c 1`
+if [ $result = "-" ] 
+then
+    echo "usage: shrug-add <filenames>" 1>&2
+    exit 1
+fi
+
+#Copy files to index
+for input in $@
+do
+    if [ ! -e $input ] 
+    then
+        if [ -e .shrug/index/$input ]
+        then
+            rm .shrug/index/$input
+            continue
+        fi
+        echo "shrug-add: error: can not open '$input'"
+        continue
+    fi
+
+    cp $input .shrug/index
+done

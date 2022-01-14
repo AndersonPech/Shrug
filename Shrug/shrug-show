@@ -1,0 +1,44 @@
+#!/bin/dash 
+
+#Which commit to show
+commit=`echo $1| cut -d':' -f1`
+#Which file to show
+file=`echo $1| cut -d':' -f2`
+#How many commits are there
+numberofcommits=`wc -l <.shrug/log`
+
+
+
+#Commit ommited, show files in index
+if [ -z $commit ] 
+then
+    #No file in index
+    if [ ! -e .shrug/index/$file ]
+    then
+        echo shrug-show: error: \'$file\' not found in index
+        exit
+    fi
+    #Show file
+    cat .shrug/index/$file
+    exit 0
+fi
+
+
+#If commit given is larger than actual commits made
+if [ $commit -ge $numberofcommits ] 
+then
+    echo shrug-show: error: unknown commit \'$commit\'
+    exit 1
+fi
+
+
+#If file doesn't exist in commit given
+if [ ! -e .shrug/$commit/$file ]
+then
+    echo shrug-show: error: \'$file\' not found in commit $commit
+    exit 1
+fi
+
+#Prints out the file in the commit given
+cat .shrug/$commit/$file
+exit 0

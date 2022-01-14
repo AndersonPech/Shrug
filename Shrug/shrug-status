@@ -1,0 +1,139 @@
+#!/bin/dash
+
+ status() {
+    #Ignores all directories
+    if [ -d $input ]
+    then
+        return
+    fi
+
+    #If file in dex and repo and cr 
+    if [ -e $input ] && [ -e .shrug/index/$input ] && [ -e .shrug/repository/$input ]
+    then
+        if diff $input .shrug/index/$input >/dev/null && ! diff $input .shrug/repository/$input >/dev/null
+        then
+            echo $input - file changed, changes staged for commit
+            return
+        fi
+        
+        if ! diff $input .shrug/index/$input >/dev/null &&  diff .shrug/index/$input .shrug/repository/$input >/dev/null
+        then
+            echo $input - file changed, changes not staged for commit
+            return
+        fi
+
+        if ! diff $input .shrug/index/$input >/dev/null && ! diff $input .shrug/repository/$input >/dev/null
+        then
+            echo "$input - file changed, different changes staged for commit"
+            return
+        fi
+    fi
+
+    
+
+    #If file in index and current directory the same but different from repository
+    if [ -e $input ] && [ -e .shrug/index/$input ] && [ ! -e .shrug/repository/$input ]
+    then
+        if  diff $input .shrug/index/$input >/dev/null 
+        then
+            echo $input - added to index
+            return
+        fi 
+    fi
+
+    #If file in index different from current. Not in repo
+    if [ -e $input ] && [ -e .shrug/index/$input ] && [ ! -e .shrug/repository/$input ]
+    then
+        if ! diff $input .shrug/index/$input >/dev/null 
+        then
+            echo $input - added to index, file changed
+            return
+        fi 
+    fi
+
+    #In index only
+    if [ ! -e $input ] && [ -e .shrug/index/$input ] && [ ! -e .shrug/repository/$input ]
+    then
+        echo $input - added to index, file deleted
+        return
+    fi
+    
+
+    #If file is in repository and index but not in current directory
+    if [ ! -e $input ] && [ -e .shrug/index/$input ] && [ -e .shrug/repository/$input ]
+    then
+        if diff .shrug/repository/$input .shrug/index/$input >/dev/null
+        then
+            echo $input - file deleted
+            return
+        fi
+    fi
+    
+
+    #If file is not in current directory and index
+    if [ ! -e $input ] && [ ! -e .shrug/index/$input ] && [ -e .shrug/repository/$input ]
+    then
+        echo $input - deleted
+        return
+    fi
+
+
+    #If file is the same in index, repository and current directory
+    if [  -e $input ] && [  -e .shrug/index/$input ] && [ -e .shrug/repository/$input ]
+    then
+        if  diff $input .shrug/index/$input >/dev/null &&  diff $input .shrug/repository/$input >/dev/null
+        then
+            echo $input - same as repo
+            return
+        fi
+    fi
+
+    #If file is same in index and current directory but not in repository
+    if [  -e $input ] && [  -e .shrug/index/$input ] && [ ! -e .shrug/repository/$input ]
+    then
+        if  diff $input .shrug/index/$input >/dev/null
+        then
+            echo $input - added to index
+            return
+        fi
+    fi
+
+    #If file is in current directory but not in index and repository
+    if [  -e $input ] && [  ! -e .shrug/index/$input ] && [ ! -e .shrug/repository/$input ]
+    then
+        echo $input - untracked
+        return
+    fi
+
+    #If file is not in index but in repo
+    if [  -e $input ] && [  ! -e .shrug/index/$input ] && [ -e .shrug/repository/$input ]
+    then
+        echo $input - untracked
+        return
+    fi
+
+    #IF file in repo but not in index or current
+    if [  ! -e $input ] && [  ! -e .shrug/index/$input ] && [ -e .shrug/repository/$input ]
+    then
+        echo $input - untracked
+        return
+    fi
+}
+
+
+#Get files from current directory, index and repository
+ls > /tmp/file3
+ls .shrug/index/ > /tmp/file
+ls .shrug/repository/ > /tmp/file2
+paste -d"\n" /tmp/file /tmp/file2 /tmp/file3 > /tmp/filefinal
+x=`cat /tmp/filefinal | sort | uniq `
+
+for input in $x
+do 
+    status $input
+done
+
+
+
+
+
