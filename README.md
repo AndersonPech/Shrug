@@ -6,3 +6,5 @@ Shell script to emulate git. The following commands are implemented..
 3. git rm
 4. git log
 5. git commit
+6. git show
+7. git status
